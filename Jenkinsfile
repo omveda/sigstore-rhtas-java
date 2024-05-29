@@ -58,7 +58,7 @@ podTemplate([
             sh '''
                 #!/bin/bash
                 echo "Downloading cosign"
-                curl -Lks -o cosign.gz https://cli-server-tas-test.$APPS_DOMAIN/clients/linux/cosign-amd64.gz
+                curl -Lks -o cosign.gz https://cli-server-trusted-artifact-signer.$APPS_DOMAIN/clients/linux/cosign-amd64.gz
                 gzip -f -d cosign.gz
                 rm -f cosign.gz
                 chmod +x cosign
