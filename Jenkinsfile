@@ -4,8 +4,8 @@ properties([
         string(defaultValue: 'quay.io/ablock/nonroot-jenkins-agent-maven:latest', description: 'Agent Image', name: 'AGENT_IMAGE'),
         string(description: 'Cluster Apps Domain', name: 'APPS_DOMAIN'),
         string(description: 'OIDC Issuer', name: 'OIDC_ISSUER'),
-        string(defaultValue: 'trusted-artifact-signer', description: 'Client ID', name: 'CLIENT_ID'),
-        string(defaultValue: 'trusted-artifact-signer', description: 'Keycloak Realm', name: 'KEYCLOAK_REALM'),
+        string(defaultValue: 'ci-builder', description: 'Client ID', name: 'CLIENT_ID'),
+        string(defaultValue: 'sigstore', description: 'Keycloak Realm', name: 'KEYCLOAK_REALM'),
         string(defaultValue: '', description: 'Image Destination', name: 'IMAGE_DESTINATION'),
         string(defaultValue: 'registry-credentials', description: 'Registry Credentials', name: 'REGISTRY_CREDENTIALS')
     ])
@@ -32,19 +32,19 @@ podTemplate([
 
        stage('Setup Environment') {
 
-         env.COSIGN_FULCIO_URL="https://fulcio-server-trusted-artifact-signer.${params.APPS_DOMAIN}"
-         env.COSIGN_REKOR_URL="https://rekor-server-trusted-artifact-signer.${params.APPS_DOMAIN}"
-         env.COSIGN_MIRROR="https://tuf-trusted-artifact-signer.${params.APPS_DOMAIN}"
-         env.COSIGN_ROOT="https://tuf-trusted-artifact-signer.${params.APPS_DOMAIN}/root.json"
+         env.COSIGN_FULCIO_URL="https://fulcio-server-tas-test.${params.APPS_DOMAIN}"
+         env.COSIGN_REKOR_URL="https://rekor-server-tas-test.${params.APPS_DOMAIN}"
+         env.COSIGN_MIRROR="https://tuf-tas-test.${params.APPS_DOMAIN}"
+         env.COSIGN_ROOT="https://tuf-tas-test.${params.APPS_DOMAIN}/root.json"
          env.COSIGN_OIDC_ISSUER="${params.OIDC_ISSUER}"
          env.COSIGN_OIDC_CLIENT_ID="${params.CLIENT_ID}"
          env.COSIGN_CERTIFICATE_OIDC_ISSUER="${params.OIDC_ISSUER}"
          env.COSIGN_YES="true"
-         env.SIGSTORE_FULCIO_URL="https://fulcio-server-trusted-artifact-signer.${params.APPS_DOMAIN}"
+         env.SIGSTORE_FULCIO_URL="https://fulcio-server-tas-test.${params.APPS_DOMAIN}"
          env.SIGSTORE_OIDC_CLIENT_ID="${params.CLIENT_ID}"
          env.SIGSTORE_OIDC_ISSUER="${params.OIDC_ISSUER}"
-         env.SIGSTORE_REKOR_URL="https://rekor-server-trusted-artifact-signer.${params.APPS_DOMAIN}"
-         env.REKOR_REKOR_SERVER="https://rekor-server-trusted-artifact-signer.${params.APPS_DOMAIN}"
+         env.SIGSTORE_REKOR_URL="https://rekor-server-tas-test.${params.APPS_DOMAIN}"
+         env.REKOR_REKOR_SERVER="https://rekor-server-tas-test.${params.APPS_DOMAIN}"
          env.COSIGN="bin/cosign"
          env.REGISTRY=sh(script: "echo ${params.IMAGE_DESTINATION} | cut -d '/' -f1", returnStdout: true).trim()
 
@@ -58,7 +58,7 @@ podTemplate([
             sh '''
                 #!/bin/bash
                 echo "Downloading cosign"
-                curl -Lks -o cosign.gz https://cli-server-trusted-artifact-signer.$APPS_DOMAIN/clients/linux/cosign-amd64.gz
+                curl -Lks -o cosign.gz https://cli-server-tas-test.$APPS_DOMAIN/clients/linux/cosign-amd64.gz
                 gzip -f -d cosign.gz
                 rm -f cosign.gz
                 chmod +x cosign
