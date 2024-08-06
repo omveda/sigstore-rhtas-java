@@ -115,7 +115,7 @@ stage('Setup Environment') {
         stage('Verify Signature') {
             sh '''
             echo "222"
-            cat key
+            cat bin/key
             echo $IMAGE_DESTINATION
             # $COSIGN verify  --certificate-identity=ci-builder@redhat.com $IMAGE_DESTINATION
             '''
