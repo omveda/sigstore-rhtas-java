@@ -9,6 +9,10 @@ properties([
     ])
 ])
 
+environment {
+    COSIGN_PASSWORD = credentials('cosign-password') // Replace with your Jenkins secret ID for the password
+}
+
 podTemplate([
     label: 'non-root-jenkins-agent-maven',
     cloud: 'openshift',
@@ -104,21 +108,34 @@ stage('Setup Environment') {
 
                    DIGEST_DESTINATION="$(echo $IMAGE_DESTINATION | cut -d \":\" -f1)@$(cat target/digest)"
                    $COSIGN login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD $REGISTRY
+                '''
+            }
+            withCredentials([
+                    file(credentialsId: 'cosign-key', variable: 'COSIGN_KEY'), // Replace with your Jenkins secret ID for the private key
+                    file(credentialsId: 'cosign-pub', variable: 'COSIGN_PUB')  // Replace with your Jenkins secret ID for the public key
+                ]) {
+                sh '''
+                   set +x
+                   export COSIGN_PASSWORD=${COSIGN_PASSWORD}
+                   $COSIGN sign --key $COSIGN_KEY  $DIGEST_DESTINATION
 
-                   # $COSIGN sign --identity-token=/var/run/sigstore/cosign/id-token $DIGEST_DESTINATION
-
-                   # $COSIGN attest --identity-token=/var/run/sigstore/cosign/id-token --predicate=./target/classes/META-INF/maven/com.redhat/sigstore-rhtas-java/license.spdx.json -y --type=spdxjson $DIGEST_DESTINATION
+                   $COSIGN attest --key $COSIGN_KEY --predicate=./target/classes/META-INF/maven/com.redhat/sigstore-rhtas-java/license.spdx.json -y --type=spdxjson $DIGEST_DESTINATION
                 '''
             }
         }
 
         stage('Verify Signature') {
+            steps {
+                withCredentials([
+                    file(credentialsId: 'cosign-pub', variable: 'COSIGN_PUB') // Replace with your Jenkins secret ID for the public key
+                ]) { 
             sh '''
             echo "222"
             cat bin/key
             echo $IMAGE_DESTINATION
-            # $COSIGN verify  --certificate-identity=ci-builder@redhat.com $IMAGE_DESTINATION
+            $COSIGN verify --key $COSIGN_PUB $IMAGE_DESTINATION
             '''
+            }
         }
     }
 }
