@@ -1,8 +1,27 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: maven
+    image: ${params.AGENT_IMAGE}
+    command:
+    - cat
+    tty: true
+  serviceAccountName: nonroot-builder
+  volumes:
+  - name: oidc-token
+    secret:
+      secretName: oidc-token
+"""
+        }
+    }
 
     environment {
-        COSIGN_PASSWORD = credentials('cosign-password') // Replace with your Jenkins secret ID for the password
+        COSIGN_PASSWORD = credentials('cosign-password')
     }
 
     parameters {
@@ -11,6 +30,7 @@ pipeline {
         string(defaultValue: '', description: 'Image Destination', name: 'IMAGE_DESTINATION')
         string(defaultValue: 'veda-registry-credentials', description: 'Registry Credentials', name: 'REGISTRY_CREDENTIALS')
     }
+
 
     stages {
         stage('Setup Environment') {
@@ -62,9 +82,9 @@ pipeline {
 
         stage('Build Application') {
             steps {
-                sh '''
-                    mvn clean package
-                '''
+                container('maven') {
+                    sh 'mvn clean package'
+                }
             }
         }
 
