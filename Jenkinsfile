@@ -49,6 +49,7 @@ stage('Setup Environment') {
                     gzip -f -d cosign.gz
                     rm -f cosign.gz
                     chmod +x cosign
+                    echo "hello world" > key
                 '''
             }
 
@@ -58,7 +59,6 @@ stage('Setup Environment') {
 
             sh '''
               $COSIGN initialize
-              echo "hello world" > key
             '''
             
             stash name: 'binaries', includes: 'bin/*'
@@ -91,7 +91,7 @@ stage('Setup Environment') {
             // Sign Jar
             sh '''
             echo "111"
-            cat key
+            cat bin/key
             # $COSIGN sign-blob $(find target -maxdepth 1  -type f -name '*.jar') --identity-token=/var/run/sigstore/cosign/id-token
             foojar=$(find target -maxdepth 1  -type f -name '*.jar')
             echo $foojar
