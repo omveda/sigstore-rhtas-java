@@ -111,8 +111,8 @@ stage('Setup Environment') {
                 '''
             }
             withCredentials([
-                    file(credentialsId: 'cosign-key', variable: 'COSIGN_KEY'), // Replace with your Jenkins secret ID for the private key
-                    file(credentialsId: 'cosign-pub', variable: 'COSIGN_PUB')  // Replace with your Jenkins secret ID for the public key
+                    file(credentialsId: 'cosign.key', variable: 'COSIGN_KEY'), // Replace with your Jenkins secret ID for the private key
+                    file(credentialsId: 'cosign.pub', variable: 'COSIGN_PUB')  // Replace with your Jenkins secret ID for the public key
                 ]) {
                 sh '''
                    set +x
@@ -127,7 +127,7 @@ stage('Setup Environment') {
         stage('Verify Signature') {
             steps {
                 withCredentials([
-                    file(credentialsId: 'cosign-pub', variable: 'COSIGN_PUB') // Replace with your Jenkins secret ID for the public key
+                    file(credentialsId: 'cosign.pub', variable: 'COSIGN_PUB') // Replace with your Jenkins secret ID for the public key
                 ]) { 
             sh '''
             echo "222"
